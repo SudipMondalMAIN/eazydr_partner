@@ -97,7 +97,7 @@ class _DoctorAvailabilityScreenState
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
-                  final fmt = (TimeOfDay t) =>
+                  String fmt(TimeOfDay t) =>
                       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
                   await ref
                       .read(doctorAvailabilityProvider(widget.doctorId)

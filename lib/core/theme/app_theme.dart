@@ -24,7 +24,7 @@ ThemeData buildAppTheme({required bool isDark, required String primaryHex, requi
   final surface2 = isDark ? const Color(0xFF162624) : const Color(0xFFEEF3F3);
   final text = isDark ? const Color(0xFFE6F1EF) : const Color(0xFF0C1A19);
   final text2 = isDark ? const Color(0xFF9DB4B0) : const Color(0xFF526360);
-  final border = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.09);
+  final border = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.09);
   final onPrimary = isDark ? const Color(0xFF04211E) : Colors.white;
 
   final headingFont = GoogleFonts.plusJakartaSansTextTheme();
@@ -57,7 +57,7 @@ ThemeData buildAppTheme({required bool isDark, required String primaryHex, requi
           bodyMedium: bodyFont.bodyMedium?.copyWith(color: text2),
         ),
     appBarTheme: AppBarTheme(
-      backgroundColor: surface.withOpacity(0.85),
+      backgroundColor: surface.withValues(alpha: 0.85),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       foregroundColor: text,
@@ -115,13 +115,13 @@ ThemeData buildAppTheme({required bool isDark, required String primaryHex, requi
         text2: text2,
         text3: isDark ? const Color(0xFF6D8480) : const Color(0xFF7D8C8A),
         border: border,
-        primarySoft: primary.withOpacity(0.1),
+        primarySoft: primary.withValues(alpha: 0.1),
         successColor: isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A),
-        successSoft: (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A)).withOpacity(0.12),
+        successSoft: (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A)).withValues(alpha: 0.12),
         dangerColor: isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-        dangerSoft: (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626)).withOpacity(0.1),
+        dangerSoft: (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626)).withValues(alpha: 0.1),
         accentColor: secondary,
-        accentSoft: secondary.withOpacity(0.12),
+        accentSoft: secondary.withValues(alpha: 0.12),
       ),
     ],
   );

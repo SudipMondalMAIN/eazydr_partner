@@ -66,7 +66,7 @@ class _SuccessViewState extends State<SuccessView> {
                   shape: BoxShape.circle,
                   color: theme.colorScheme.primary,
                   border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.2),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
                       width: 6),
                 ),
                 child: const Icon(Icons.check_rounded,

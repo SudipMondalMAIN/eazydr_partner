@@ -10,7 +10,6 @@ class LocalStorage {
   static const _kLastCity = 'last_picked_city';
   static const _kLastLat = 'last_picked_lat';
   static const _kLastLng = 'last_picked_lng';
-  static const _kBaseUrl = 'backend_base_url';
   static const _kAppConfigCache = 'app_config_cache';
   static const _kSupportSessionId = 'support_session_id';
 

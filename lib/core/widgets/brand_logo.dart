@@ -52,7 +52,7 @@ class BrandHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(tagline!,
               style: TextStyle(
-                  color: Colors.black.withOpacity(0.55), fontSize: 13)),
+                  color: Colors.black.withValues(alpha: 0.55), fontSize: 13)),
         ],
       ],
     );
@@ -130,8 +130,8 @@ class _StaticLogoPainter extends CustomPainter {
         center: crossCenter, width: armShort * 2, height: armLong * 2);
     final hRect = Rect.fromCenter(
         center: crossCenter, width: armLong * 2, height: armShort * 2);
-    final rrV = RRect.fromRectAndRadius(vRect, Radius.circular(armShort * 0.5));
-    final rrH = RRect.fromRectAndRadius(hRect, Radius.circular(armShort * 0.5));
+    final rrV = RRect.fromRectAndRadius(vRect, const Radius.circular(armShort * 0.5));
+    final rrH = RRect.fromRectAndRadius(hRect, const Radius.circular(armShort * 0.5));
     canvas.drawRRect(rrV, crossPaint);
     canvas.drawRRect(rrH, crossPaint);
 

@@ -104,9 +104,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await ref
           .read(authProvider.notifier)
           .forgotPassword(email: _emailCtrl.text.trim());
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('OTP resent to your email')));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     }

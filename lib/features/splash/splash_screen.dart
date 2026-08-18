@@ -72,8 +72,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     if (configAsync.forceUpdate) {
       final installedOk = await _versionSatisfies(configAsync.minAppVersion);
-      if (!installedOk)
+      if (!installedOk) {
         return; // blocking overlay is rendered by build(); stay on splash
+      }
     }
 
     // Let the logo animation finish playing before navigating away.
@@ -179,7 +180,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     opacity: _finish.value,
                     child: Text('Manage bookings, grow your practice',
                         style: TextStyle(
-                            color: Colors.black.withOpacity(0.55),
+                            color: Colors.black.withValues(alpha: 0.55),
                             fontSize: 14)),
                   ),
                 ),
@@ -232,7 +233,7 @@ class _LogoPainter extends CustomPainter {
 
     // Stage 1 — starting dot.
     if (draw <= 0) {
-      final dotPaint = Paint()..color = _navy.withOpacity(dot);
+      final dotPaint = Paint()..color = _navy.withValues(alpha: dot);
       canvas.drawCircle(center, 5 * dot, dotPaint);
       return;
     }
@@ -243,7 +244,7 @@ class _LogoPainter extends CustomPainter {
         final t = ((pulse - delay).clamp(0.0, 1.0)) / (1 - delay);
         if (t <= 0) continue;
         final ringPaint = Paint()
-          ..color = _teal.withOpacity((1 - t) * 0.35)
+          ..color = _teal.withValues(alpha: (1 - t) * 0.35)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
         canvas.drawCircle(center, 55 + 45 * t, ringPaint);
@@ -299,14 +300,14 @@ class _LogoPainter extends CustomPainter {
         ..color = _navy
         ..style = PaintingStyle.stroke
         ..strokeWidth = 5;
-      final inner = Paint()..color = _tealLight.withOpacity(reveal);
+      final inner = Paint()..color = _tealLight.withValues(alpha: reveal);
       canvas.drawCircle(chestCenter, 8 * reveal, outer..strokeWidth = 5);
       canvas.drawCircle(chestCenter, 4.5 * reveal, inner);
     }
 
     // Cross — fades/scales in during reveal, centered slightly right of the mark.
     if (reveal > 0) {
-      final crossPaint = Paint()..color = _teal.withOpacity(reveal);
+      final crossPaint = Paint()..color = _teal.withValues(alpha: reveal);
       final crossCenter = center + const Offset(10, -8);
       final armLong = 26.0 * reveal;
       final armShort = 8.0 * reveal;
@@ -351,7 +352,7 @@ class _WavePainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [_tealLight.withOpacity(0.0), _tealLight.withOpacity(0.55)],
+        colors: [_tealLight.withValues(alpha: 0.0), _tealLight.withValues(alpha: 0.55)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final path = Path()
