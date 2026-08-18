@@ -51,6 +51,20 @@ class CheckInService {
     });
     return CheckInResult.fromJson(res.data);
   }
+
+  Future<ConsultationResult> startConsultation(String bookingId) async {
+    final api = ref.read(apiClientProvider);
+    final res =
+        await api.post('/api/v1/queue/consultation/$bookingId/start');
+    return ConsultationResult.fromJson(res.data);
+  }
+
+  Future<ConsultationResult> completeConsultation(String bookingId) async {
+    final api = ref.read(apiClientProvider);
+    final res =
+        await api.post('/api/v1/queue/consultation/$bookingId/complete');
+    return ConsultationResult.fromJson(res.data);
+  }
 }
 
 final checkInServiceProvider = Provider((ref) => CheckInService(ref));

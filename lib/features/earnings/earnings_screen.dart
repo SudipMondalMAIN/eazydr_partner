@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/facility_provider.dart';
 import '../../core/providers/wallet_provider.dart';
+import 'withdrawal_history_screen.dart';
 
 class EarningsScreen extends ConsumerStatefulWidget {
   const EarningsScreen({super.key});
@@ -13,7 +14,7 @@ class EarningsScreen extends ConsumerStatefulWidget {
 class _EarningsScreenState extends ConsumerState<EarningsScreen> {
   String? _facilityId;
 
-  Future<void> _openWithdrawSheet(num maxAmount) async {
+  Future<void> _openWithdrawSheet(String facilityId, num maxAmount) async {
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     await showModalBottomSheet(
@@ -52,7 +53,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                         final amount = num.tryParse(amountCtrl.text.trim());
                         if (amount == null || amount <= 0) return;
                         await ref.read(withdrawalProvider.notifier).request(
-                            amount: amount, note: noteCtrl.text.trim());
+                            facilityId: facilityId,
+                            amount: amount,
+                            note: noteCtrl.text.trim());
                         if (ctx.mounted) Navigator.of(ctx).pop();
                       },
                 child: w.isLoading
@@ -164,12 +167,31 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
                                             .textTheme
                                             .headlineMedium),
                                     const SizedBox(height: 14),
-                                    FilledButton.icon(
-                                      onPressed: () => _openWithdrawSheet(
-                                          (balance is num) ? balance : 0),
-                                      icon: const Icon(
-                                          Icons.account_balance_wallet_rounded),
-                                      label: const Text('Request withdrawal'),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: FilledButton.icon(
+                                            onPressed: () => _openWithdrawSheet(
+                                                _facilityId!,
+                                                (balance is num) ? balance : 0),
+                                            icon: const Icon(Icons
+                                                .account_balance_wallet_rounded),
+                                            label:
+                                                const Text('Request withdrawal'),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        OutlinedButton.icon(
+                                          onPressed: () => Navigator.of(context)
+                                              .push(MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      WithdrawalHistoryScreen(
+                                                          facilityId:
+                                                              _facilityId!))),
+                                          icon: const Icon(Icons.history_rounded),
+                                          label: const Text('History'),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

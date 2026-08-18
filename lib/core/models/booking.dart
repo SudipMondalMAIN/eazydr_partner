@@ -77,6 +77,36 @@ class CheckInResult {
       );
 }
 
+/// Response of POST /queue/consultation/{id}/start and /complete (backend's
+/// ConsultationResult schema).
+class ConsultationResult {
+  final String bookingId;
+  final String doctorId;
+  final int tokenNumber;
+  final String status;
+  final String? consultationStartedAt;
+  final String? consultationCompletedAt;
+
+  ConsultationResult({
+    required this.bookingId,
+    required this.doctorId,
+    required this.tokenNumber,
+    required this.status,
+    this.consultationStartedAt,
+    this.consultationCompletedAt,
+  });
+
+  factory ConsultationResult.fromJson(Map<String, dynamic> json) =>
+      ConsultationResult(
+        bookingId: json['booking_id'].toString(),
+        doctorId: json['doctor_id'].toString(),
+        tokenNumber: json['token_number'] ?? 0,
+        status: json['status'] ?? '',
+        consultationStartedAt: json['consultation_started_at'],
+        consultationCompletedAt: json['consultation_completed_at'],
+      );
+}
+
 /// Matches backend's LiveQueueOut (GET /queue/live/{doctor_id}): only a
 /// single "now serving" token number for the day, plus a stall flag. The
 /// backend does not expose a "next" token, waiting count, or patient

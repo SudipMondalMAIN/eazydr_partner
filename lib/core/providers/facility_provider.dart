@@ -50,6 +50,29 @@ class MyFacilitiesNotifier extends AsyncNotifier<List<Facility>> {
     await api.postForm('/api/v1/facilities/$facilityId/photo', form);
     await refresh();
   }
+
+  Future<void> editFacility(
+    String facilityId, {
+    String? name,
+    String? address,
+    String? city,
+    String? phone,
+  }) async {
+    final api = ref.read(apiClientProvider);
+    await api.patch('/api/v1/facilities/$facilityId', data: {
+      if (name != null && name.isNotEmpty) 'name': name,
+      if (address != null && address.isNotEmpty) 'address': address,
+      if (city != null && city.isNotEmpty) 'city': city,
+      if (phone != null) 'phone': phone.isEmpty ? null : phone,
+    });
+    await refresh();
+  }
+
+  Future<void> delete(String facilityId) async {
+    final api = ref.read(apiClientProvider);
+    await api.delete('/api/v1/facilities/$facilityId');
+    await refresh();
+  }
 }
 
 final myFacilitiesProvider =
@@ -94,6 +117,24 @@ class FacilityDoctorsNotifier
       'specialty': specialty,
       if (qualification != null) 'qualification': qualification,
       if (experienceYears != null) 'experience_years': experienceYears,
+      if (consultationFee != null) 'consultation_fee': consultationFee,
+    });
+    await refresh();
+  }
+
+  Future<void> updateDoctor(
+    String doctorId, {
+    String? name,
+    String? specialty,
+    String? qualification,
+    num? consultationFee,
+  }) async {
+    final api = ref.read(apiClientProvider);
+    await api.patch('/api/v1/facilities/doctors/$doctorId', data: {
+      if (name != null && name.isNotEmpty) 'full_name': name,
+      if (specialty != null && specialty.isNotEmpty) 'specialty': specialty,
+      if (qualification != null && qualification.isNotEmpty)
+        'qualification': qualification,
       if (consultationFee != null) 'consultation_fee': consultationFee,
     });
     await refresh();

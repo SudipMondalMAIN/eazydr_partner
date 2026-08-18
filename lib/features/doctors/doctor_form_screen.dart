@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/facility_provider.dart';
+import '../../core/models/doctor.dart';
 
 class DoctorFormScreen extends ConsumerStatefulWidget {
   final String facilityId;
-  const DoctorFormScreen({super.key, required this.facilityId});
+
+  /// When provided, the form edits this existing doctor instead of
+  /// adding a new one.
+  final Doctor? doctor;
+
+  const DoctorFormScreen({super.key, required this.facilityId, this.doctor});
+
+  bool get isEdit => doctor != null;
 
   @override
   ConsumerState<DoctorFormScreen> createState() => _DoctorFormScreenState();
@@ -12,11 +20,15 @@ class DoctorFormScreen extends ConsumerStatefulWidget {
 
 class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
-  final _specialty = TextEditingController();
-  final _qualification = TextEditingController();
-  final _experience = TextEditingController();
-  final _fee = TextEditingController();
+  late final _name = TextEditingController(text: widget.doctor?.name ?? '');
+  late final _specialty =
+      TextEditingController(text: widget.doctor?.specialty ?? '');
+  late final _qualification =
+      TextEditingController(text: widget.doctor?.qualification ?? '');
+  late final _experience = TextEditingController(
+      text: widget.doctor?.experienceYears?.toString() ?? '');
+  late final _fee = TextEditingController(
+      text: widget.doctor?.consultationFee?.toString() ?? '');
   bool _saving = false;
   String? _error;
 
@@ -27,17 +39,31 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
       _error = null;
     });
     try {
-      await ref
-          .read(facilityDoctorsProvider(widget.facilityId).notifier)
-          .addDoctor(
-            name: _name.text.trim(),
-            specialty: _specialty.text.trim(),
-            qualification: _qualification.text.trim().isEmpty
-                ? null
-                : _qualification.text.trim(),
-            experienceYears: int.tryParse(_experience.text.trim()),
-            consultationFee: num.tryParse(_fee.text.trim()),
-          );
+      if (widget.isEdit) {
+        await ref
+            .read(facilityDoctorsProvider(widget.facilityId).notifier)
+            .updateDoctor(
+              widget.doctor!.id,
+              name: _name.text.trim(),
+              specialty: _specialty.text.trim(),
+              qualification: _qualification.text.trim().isEmpty
+                  ? null
+                  : _qualification.text.trim(),
+              consultationFee: num.tryParse(_fee.text.trim()),
+            );
+      } else {
+        await ref
+            .read(facilityDoctorsProvider(widget.facilityId).notifier)
+            .addDoctor(
+              name: _name.text.trim(),
+              specialty: _specialty.text.trim(),
+              qualification: _qualification.text.trim().isEmpty
+                  ? null
+                  : _qualification.text.trim(),
+              experienceYears: int.tryParse(_experience.text.trim()),
+              consultationFee: num.tryParse(_fee.text.trim()),
+            );
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       setState(() => _error = e.toString());
@@ -49,7 +75,8 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Doctor')),
+      appBar:
+          AppBar(title: Text(widget.isEdit ? 'Edit Doctor' : 'Add Doctor')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -77,8 +104,11 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _experience,
-              decoration: const InputDecoration(
-                  labelText: 'Experience (years, optional)'),
+              enabled: !widget.isEdit,
+              decoration: InputDecoration(
+                  labelText: widget.isEdit
+                      ? 'Experience (years) — not editable'
+                      : 'Experience (years, optional)'),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 14),
@@ -100,7 +130,7 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Save doctor'),
+                  : Text(widget.isEdit ? 'Save changes' : 'Save doctor'),
             ),
           ],
         ),
