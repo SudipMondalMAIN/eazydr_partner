@@ -21,10 +21,14 @@ class MyAdsNotifier extends AsyncNotifier<List<Ad>> {
   }
 
   /// Uploads the creative first, then submits the ad using the returned
-  /// image URL, per POST /ads/upload-image -> POST /ads.
+  /// storage key, per POST /ads/upload-image -> POST /ads. Backend's
+  /// AdvertisementCreate requires image_storage_key (not image_url) and
+  /// category — both were previously missing, which caused a 422 "Field
+  /// required" error on every ad submission.
   Future<void> createAd({
     required String title,
     required File image,
+    required String category,
     String? facilityId,
   }) async {
     final api = ref.read(apiClientProvider);
@@ -32,10 +36,11 @@ class MyAdsNotifier extends AsyncNotifier<List<Ad>> {
       'file': await MultipartFile.fromFile(image.path),
     });
     final uploadRes = await api.postForm('/api/v1/ads/upload-image', form);
-    final imageUrl = uploadRes.data['image_url'] ?? uploadRes.data['url'];
+    final storageKey = uploadRes.data['storage_key'];
     await api.post('/api/v1/ads', data: {
       'title': title,
-      'image_url': imageUrl,
+      'image_storage_key': storageKey,
+      'category': category,
       if (facilityId != null) 'facility_id': facilityId,
     });
     await refresh();

@@ -27,14 +27,21 @@ class MyFacilitiesNotifier extends AsyncNotifier<List<Facility>> {
     required String type,
     required String address,
     required String city,
+    required double latitude,
+    required double longitude,
     String? phone,
   }) async {
     final api = ref.read(apiClientProvider);
+    // Backend's FacilityCreate expects `facility_type` (not `type`) and
+    // requires latitude/longitude — both were previously missing, which
+    // caused a 422 "Field required" error on every facility creation.
     final res = await api.post('/api/v1/facilities', data: {
       'name': name,
-      'type': type,
+      'facility_type': type,
       'address': address,
       'city': city,
+      'latitude': latitude,
+      'longitude': longitude,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
     });
     final created = Facility.fromJson(res.data);
@@ -107,16 +114,17 @@ class FacilityDoctorsNotifier
   Future<void> addDoctor({
     required String name,
     required String specialty,
-    String? qualification,
-    int? experienceYears,
+    required String qualification,
     num? consultationFee,
   }) async {
     final api = ref.read(apiClientProvider);
+    // Backend's DoctorCreate requires full_name, qualification, and
+    // specialty; consultation_fee defaults to 0.0 if omitted. There is no
+    // experience_years field on the backend schema, so it isn't sent.
     await api.post('/api/v1/facilities/$arg/doctors', data: {
-      'name': name,
+      'full_name': name,
       'specialty': specialty,
-      if (qualification != null) 'qualification': qualification,
-      if (experienceYears != null) 'experience_years': experienceYears,
+      'qualification': qualification,
       if (consultationFee != null) 'consultation_fee': consultationFee,
     });
     await refresh();

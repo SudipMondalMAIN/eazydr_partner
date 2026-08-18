@@ -70,6 +70,24 @@ class FacilityDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _pickAndUploadDoctorPhoto(
+      BuildContext context, WidgetRef ref, String doctorId) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+        source: ImageSource.gallery, imageQuality: 85);
+    if (picked == null) return;
+    try {
+      await ref
+          .read(facilityDoctorsProvider(facilityId).notifier)
+          .uploadDoctorPhoto(doctorId, File(picked.path));
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final facility = ref.watch(facilityDetailProvider(facilityId));
@@ -174,13 +192,40 @@ class FacilityDetailScreen extends ConsumerWidget {
                     .map((d) => Card(
                           margin: const EdgeInsets.only(bottom: 10),
                           child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: d.photoUrl != null
-                                  ? NetworkImage(d.photoUrl!)
-                                  : null,
-                              child: d.photoUrl == null
-                                  ? const Icon(Icons.person_rounded)
-                                  : null,
+                            leading: GestureDetector(
+                              onTap: () => _pickAndUploadDoctorPhoto(
+                                  context, ref, d.id),
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: d.photoUrl != null
+                                        ? NetworkImage(d.photoUrl!)
+                                        : null,
+                                    child: d.photoUrl == null
+                                        ? const Icon(Icons.person_rounded)
+                                        : null,
+                                  ),
+                                  Positioned(
+                                    right: -2,
+                                    bottom: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: Colors.white, width: 1.5),
+                                      ),
+                                      child: const Icon(
+                                          Icons.camera_alt_rounded,
+                                          size: 10,
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             title: Text(d.name),
                             subtitle: Text(d.specialty),

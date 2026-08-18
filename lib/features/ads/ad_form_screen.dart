@@ -16,8 +16,16 @@ class _AdFormScreenState extends ConsumerState<AdFormScreen> {
   final _title = TextEditingController();
   File? _image;
   String? _facilityId;
+  String _category = _categories.first;
   bool _saving = false;
   String? _error;
+
+  static const _categories = [
+    'Clinic',
+    'Hospital',
+    'Diagnostic Center',
+    'Pharmacy',
+  ];
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker()
@@ -38,6 +46,7 @@ class _AdFormScreenState extends ConsumerState<AdFormScreen> {
       await ref.read(myAdsProvider.notifier).createAd(
             title: _title.text.trim(),
             image: _image!,
+            category: _category,
             facilityId: _facilityId,
           );
       if (mounted) Navigator.of(context).pop();
@@ -79,6 +88,15 @@ class _AdFormScreenState extends ConsumerState<AdFormScreen> {
           TextField(
             controller: _title,
             decoration: const InputDecoration(labelText: 'Ad title'),
+          ),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<String>(
+            initialValue: _category,
+            decoration: const InputDecoration(labelText: 'Category'),
+            items: _categories
+                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                .toList(),
+            onChanged: (v) => setState(() => _category = v ?? _category),
           ),
           const SizedBox(height: 14),
           facilities.when(

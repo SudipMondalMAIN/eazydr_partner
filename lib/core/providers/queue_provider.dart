@@ -15,6 +15,36 @@ final bookingDetailProvider =
   return Booking.fromJson(res.data);
 });
 
+/// Booking history for one of the merchant's own facilities, optionally
+/// filtered by status. `statusFilter` of null or empty returns everything.
+class FacilityBookingsParams {
+  final String facilityId;
+  final String? status;
+  const FacilityBookingsParams(this.facilityId, {this.status});
+
+  @override
+  bool operator ==(Object other) =>
+      other is FacilityBookingsParams &&
+      other.facilityId == facilityId &&
+      other.status == status;
+
+  @override
+  int get hashCode => Object.hash(facilityId, status);
+}
+
+final facilityBookingsProvider = FutureProvider.family<List<BookingListItem>,
+    FacilityBookingsParams>((ref, params) async {
+  final api = ref.read(apiClientProvider);
+  final res = await api.get(
+    '/api/v1/bookings/facility/${params.facilityId}',
+    query: params.status != null && params.status!.isNotEmpty
+        ? {'status': params.status}
+        : null,
+  );
+  final list = (res.data as List).cast<Map<String, dynamic>>();
+  return list.map(BookingListItem.fromJson).toList();
+});
+
 class CheckInService {
   CheckInService(this.ref);
   final Ref ref;
@@ -84,7 +114,14 @@ class LiveQueueNotifier extends FamilyAsyncNotifier<LiveQueue, String> {
 
   Future<LiveQueue> _fetch(String doctorId) async {
     final api = ref.read(apiClientProvider);
-    final res = await api.get('/api/v1/queue/live/$doctorId');
+    // Backend requires a `date` query param (YYYY-MM-DD) — always today's
+    // date for the merchant's live queue view.
+    final today =
+        DateTime.now().toIso8601String().split('T').first; // YYYY-MM-DD
+    final res = await api.get(
+      '/api/v1/queue/live/$doctorId',
+      query: {'date': today},
+    );
     return LiveQueue.fromJson(res.data);
   }
 

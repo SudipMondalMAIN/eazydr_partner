@@ -1,3 +1,49 @@
+/// Matches backend's FacilityBookingListItemOut (GET
+/// /bookings/facility/{facility_id}) — the Partner App's booking history
+/// row for one of the merchant's own facilities.
+class BookingListItem {
+  final String id;
+  final String bookingCode;
+  final String patientName;
+  final String? patientPhone;
+  final String doctorName;
+  final String status;
+  final int tokenNumber;
+  final String appointmentDate;
+  final String expectedTime;
+  final double bookingFee;
+  final String createdAt;
+
+  BookingListItem({
+    required this.id,
+    required this.bookingCode,
+    required this.patientName,
+    this.patientPhone,
+    required this.doctorName,
+    required this.status,
+    required this.tokenNumber,
+    required this.appointmentDate,
+    required this.expectedTime,
+    required this.bookingFee,
+    required this.createdAt,
+  });
+
+  factory BookingListItem.fromJson(Map<String, dynamic> json) =>
+      BookingListItem(
+        id: json['id'].toString(),
+        bookingCode: json['booking_code'] ?? '',
+        patientName: json['patient_name'] ?? '',
+        patientPhone: json['patient_phone'],
+        doctorName: json['doctor_name'] ?? '',
+        status: json['status'] ?? '',
+        tokenNumber: json['token_number'] ?? 0,
+        appointmentDate: json['appointment_date'] ?? '',
+        expectedTime: json['expected_time'] ?? '',
+        bookingFee: (json['booking_fee'] as num?)?.toDouble() ?? 0,
+        createdAt: json['created_at'] ?? '',
+      );
+}
+
 /// Matches backend's BookingWithQrOut (GET /bookings/{id}/receipt), which
 /// is a superset of BookingOut (GET /bookings/{id}) plus doctor/facility
 /// display names and the QR image — so the app always fetches via the

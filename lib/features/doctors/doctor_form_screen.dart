@@ -25,8 +25,6 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
       TextEditingController(text: widget.doctor?.specialty ?? '');
   late final _qualification =
       TextEditingController(text: widget.doctor?.qualification ?? '');
-  late final _experience = TextEditingController(
-      text: widget.doctor?.experienceYears?.toString() ?? '');
   late final _fee = TextEditingController(
       text: widget.doctor?.consultationFee?.toString() ?? '');
   bool _saving = false;
@@ -57,10 +55,7 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
             .addDoctor(
               name: _name.text.trim(),
               specialty: _specialty.text.trim(),
-              qualification: _qualification.text.trim().isEmpty
-                  ? null
-                  : _qualification.text.trim(),
-              experienceYears: int.tryParse(_experience.text.trim()),
+              qualification: _qualification.text.trim(),
               consultationFee: num.tryParse(_fee.text.trim()),
             );
       }
@@ -98,18 +93,9 @@ class _DoctorFormScreenState extends ConsumerState<DoctorFormScreen> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _qualification,
-              decoration:
-                  const InputDecoration(labelText: 'Qualification (optional)'),
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _experience,
-              enabled: !widget.isEdit,
-              decoration: InputDecoration(
-                  labelText: widget.isEdit
-                      ? 'Experience (years) — not editable'
-                      : 'Experience (years, optional)'),
-              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Qualification'),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 14),
             TextFormField(

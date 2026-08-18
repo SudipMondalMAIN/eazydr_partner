@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../core/providers/facility_provider.dart';
 import '../../core/models/facility.dart';
 
@@ -27,12 +28,53 @@ class _FacilityFormScreenState extends ConsumerState<FacilityFormScreen> {
   late final _phone = TextEditingController(text: widget.facility?.phone ?? '');
   late String _type = widget.facility?.type ?? 'Clinic';
   bool _saving = false;
+  bool _fetchingLocation = false;
   String? _error;
+  double? _latitude;
+  double? _longitude;
 
   static const _types = ['Clinic', 'Hospital', 'Diagnostic Center', 'Pharmacy'];
 
+  /// Grabs the device's current GPS position for the new facility.
+  /// Required by the backend — FacilityCreate has no default for
+  /// latitude/longitude.
+  Future<void> _fetchLocation() async {
+    setState(() {
+      _fetchingLocation = true;
+      _error = null;
+    });
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw 'Location permission is required to add a facility';
+      }
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        throw 'Please enable location services and try again';
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _latitude = pos.latitude;
+        _longitude = pos.longitude;
+      });
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _fetchingLocation = false);
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!widget.isEdit && (_latitude == null || _longitude == null)) {
+      setState(() => _error = 'Tap "Use current location" to set the facility location');
+      return;
+    }
     setState(() {
       _saving = true;
       _error = null;
@@ -52,6 +94,8 @@ class _FacilityFormScreenState extends ConsumerState<FacilityFormScreen> {
               type: _type,
               address: _address.text.trim(),
               city: _city.text.trim(),
+              latitude: _latitude!,
+              longitude: _longitude!,
               phone: _phone.text.trim(),
             );
       }
@@ -112,6 +156,21 @@ class _FacilityFormScreenState extends ConsumerState<FacilityFormScreen> {
               decoration: const InputDecoration(labelText: 'Phone (optional)'),
               keyboardType: TextInputType.phone,
             ),
+            if (!widget.isEdit) ...[
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: _fetchingLocation ? null : _fetchLocation,
+                icon: _fetchingLocation
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.my_location),
+                label: Text(_latitude != null
+                    ? 'Location set (${_latitude!.toStringAsFixed(5)}, ${_longitude!.toStringAsFixed(5)})'
+                    : 'Use current location'),
+              ),
+            ],
             if (_error != null) ...[
               const SizedBox(height: 14),
               Text(_error!, style: const TextStyle(color: Colors.red)),
