@@ -22,13 +22,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     setState(() => _busy = true);
     await _controller.stop();
     try {
-      final booking =
+      final result =
           await ref.read(checkInServiceProvider).checkInWithQr(raw);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Checked in: ${booking.patientName}')));
+          SnackBar(content: Text('Checked in: ${result.patientName}')));
       await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => BookingDetailScreen(bookingId: booking.id)));
+          builder: (_) => BookingDetailScreen(bookingId: result.bookingId)));
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)

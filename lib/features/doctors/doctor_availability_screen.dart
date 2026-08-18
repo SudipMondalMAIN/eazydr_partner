@@ -26,7 +26,7 @@ class _DoctorAvailabilityScreenState
   ];
 
   Future<void> _openAddSlotSheet({bool isLeave = false}) async {
-    String day = _days.first;
+    int dayIndex = 0;
     TimeOfDay start = const TimeOfDay(hour: 9, minute: 0);
     TimeOfDay end = const TimeOfDay(hour: 13, minute: 0);
     final durationCtrl = TextEditingController(text: '15');
@@ -49,14 +49,17 @@ class _DoctorAvailabilityScreenState
               Text(isLeave ? 'Mark leave day' : 'Add availability',
                   style: Theme.of(ctx).textTheme.titleMedium),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: day,
-                decoration: const InputDecoration(labelText: 'Day'),
-                items: _days
-                    .map((d) => DropdownMenuItem(value: d, child: Text(d)))
-                    .toList(),
-                onChanged: (v) => setSheetState(() => day = v ?? day),
-              ),
+              if (!isLeave)
+                DropdownButtonFormField<int>(
+                  initialValue: dayIndex,
+                  decoration: const InputDecoration(labelText: 'Day'),
+                  items: List.generate(_days.length, (i) => i)
+                      .map((i) =>
+                          DropdownMenuItem(value: i, child: Text(_days[i])))
+                      .toList(),
+                  onChanged: (v) =>
+                      setSheetState(() => dayIndex = v ?? dayIndex),
+                ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -103,7 +106,7 @@ class _DoctorAvailabilityScreenState
                       .read(doctorAvailabilityProvider(widget.doctorId)
                           .notifier)
                       .addSlot(
-                        dayOfWeek: day,
+                        dayOfWeek: isLeave ? null : dayIndex,
                         startTime: fmt(start),
                         endTime: fmt(end),
                         slotDurationMinutes:
@@ -176,7 +179,7 @@ class _DoctorAvailabilityScreenState
                     leading: Icon(s.isLeave
                         ? Icons.event_busy_rounded
                         : Icons.schedule_rounded),
-                    title: Text(s.dayOfWeek),
+                    title: Text(s.isLeave ? 'Leave day' : s.dayLabel),
                     subtitle: Text(s.isLeave
                         ? 'On leave'
                         : '${s.startTime} – ${s.endTime} · ${s.slotDurationMinutes} min slots'),

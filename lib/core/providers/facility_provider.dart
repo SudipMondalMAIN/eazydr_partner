@@ -131,7 +131,7 @@ class DoctorAvailabilityNotifier
   }
 
   Future<void> addSlot({
-    required String dayOfWeek,
+    int? dayOfWeek,
     required String startTime,
     required String endTime,
     int slotDurationMinutes = 15,
@@ -139,7 +139,7 @@ class DoctorAvailabilityNotifier
   }) async {
     final api = ref.read(apiClientProvider);
     await api.post('/api/v1/facilities/doctors/$arg/availability', data: {
-      'day_of_week': dayOfWeek,
+      'day_of_week': isLeave ? null : dayOfWeek,
       'start_time': startTime,
       'end_time': endTime,
       'slot_duration_minutes': slotDurationMinutes,

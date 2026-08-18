@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/models/booking.dart';
 import '../../core/providers/facility_provider.dart';
 import '../../core/providers/queue_provider.dart';
 
@@ -14,7 +13,6 @@ class QueueScreen extends ConsumerStatefulWidget {
 class _QueueScreenState extends ConsumerState<QueueScreen> {
   String? _facilityId;
   String? _doctorId;
-  String? _doctorName;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +58,6 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
                       return const Text('No doctors under this facility.');
                     }
                     _doctorId ??= list.first.id;
-                    _doctorName ??= list.first.name;
                     return DropdownButtonFormField<String>(
                       initialValue: _doctorId,
                       decoration: const InputDecoration(labelText: 'Doctor'),
@@ -68,11 +65,7 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
                           .map((d) => DropdownMenuItem(
                               value: d.id, child: Text(d.name)))
                           .toList(),
-                      onChanged: (v) => setState(() {
-                        _doctorId = v;
-                        _doctorName =
-                            list.firstWhere((d) => d.id == v).name;
-                      }),
+                      onChanged: (v) => setState(() => _doctorId = v),
                     );
                   },
                 );
@@ -121,54 +114,34 @@ class _LiveQueueView extends ConsumerWidget {
                     ],
                   ),
                 ),
-              _tokenCard(context, 'Now serving', q.current, Colors.teal),
-              const SizedBox(height: 14),
-              _tokenCard(context, 'Next', q.next, Colors.blueGrey),
-              const SizedBox(height: 14),
               Card(
-                child: ListTile(
-                  leading: const Icon(Icons.people_alt_rounded),
-                  title: const Text('Waiting'),
-                  trailing: Text('${q.waitingCount}',
-                      style: Theme.of(context).textTheme.titleLarge),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text('Now serving',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text(
+                        q.currentToken > 0 ? '${q.currentToken}' : '—',
+                        style: Theme.of(context)
+                            .textTheme
+                            .displayLarge
+                            ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(q.queueDate,
+                          style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _tokenCard(
-      BuildContext context, String label, QueueToken? token, Color color) {
-    return Card(
-      color: color.withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: color,
-              child: Text(token?.tokenNumber ?? '—',
-                  style: const TextStyle(color: Colors.white)),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: const TextStyle(
-                          fontSize: 12, color: Colors.grey)),
-                  Text(token?.patientName ?? 'No one',
-                      style: Theme.of(context).textTheme.titleMedium),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

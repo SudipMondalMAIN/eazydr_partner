@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/queue_provider.dart';
 
 class BookingDetailScreen extends ConsumerWidget {
@@ -28,50 +28,45 @@ class BookingDetailScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(b.patientName,
-                            style: Theme.of(context).textTheme.titleLarge),
+                        Expanded(
+                          child: Text(b.patientName,
+                              style: Theme.of(context).textTheme.titleLarge),
+                        ),
                         Chip(label: Text(b.status)),
                       ],
                     ),
                     if (b.patientPhone != null) Text(b.patientPhone!),
                     const Divider(height: 28),
+                    _row('Booking code', b.bookingCode),
                     _row('Doctor', b.doctorName),
                     _row('Facility', b.facilityName),
-                    if (b.tokenNumber != null) _row('Token', b.tokenNumber!),
-                    if (b.appointmentDate != null)
-                      _row('Date', b.appointmentDate!),
-                    if (b.appointmentTime != null)
-                      _row('Time', b.appointmentTime!),
+                    if (b.facilityAddress.isNotEmpty)
+                      _row('Address', b.facilityAddress),
+                    if (b.tokenNumber.isNotEmpty)
+                      _row('Token', b.tokenNumber),
+                    if (b.appointmentDate.isNotEmpty)
+                      _row('Date', b.appointmentDate),
+                    if (b.expectedTime.isNotEmpty)
+                      _row('Time', b.expectedTime),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () async {
-                final receiptUrl = ref
-                    .read(bookingReceiptProvider(bookingId))
-                    .maybeWhen(
-                        data: (data) =>
-                            data['receipt_url'] ?? data['url'] ?? b.receiptUrl,
-                        orElse: () => b.receiptUrl);
-                if (receiptUrl != null) {
-                  await launchUrl(Uri.parse(receiptUrl),
-                      mode: LaunchMode.externalApplication);
-                } else {
-                  ref.invalidate(bookingReceiptProvider(bookingId));
-                  final data =
-                      await ref.read(bookingReceiptProvider(bookingId).future);
-                  final url = data['receipt_url'] ?? data['url'];
-                  if (url != null) {
-                    await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.externalApplication);
-                  }
-                }
-              },
-              icon: const Icon(Icons.receipt_long_rounded),
-              label: const Text('View / print receipt (with QR)'),
-            ),
+            if (b.qrCodeBase64 != null && b.qrCodeBase64!.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    children: [
+                      Text('Booking QR', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 12),
+                      Image.memory(base64Decode(b.qrCodeBase64!), width: 200, height: 200),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -83,7 +78,7 @@ class BookingDetailScreen extends ConsumerWidget {
         child: Row(
           children: [
             SizedBox(
-                width: 90,
+                width: 100,
                 child: Text(label, style: const TextStyle(color: Colors.grey))),
             Expanded(child: Text(value)),
           ],

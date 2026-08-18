@@ -1,47 +1,63 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../api/api_exception.dart';
 import '../core_providers.dart';
 import '../models/booking.dart';
 
+/// Fetches full booking details via the /receipt endpoint, which returns
+/// everything the plain /bookings/{id} endpoint does plus doctor/facility
+/// display names and the QR image — one call covers the whole detail
+/// screen instead of two mismatched ones.
 final bookingDetailProvider =
     FutureProvider.family<Booking, String>((ref, id) async {
   final api = ref.read(apiClientProvider);
-  final res = await api.get('/api/v1/bookings/$id');
-  return Booking.fromJson(res.data);
-});
-
-final bookingReceiptProvider =
-    FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
-  final api = ref.read(apiClientProvider);
   final res = await api.get('/api/v1/bookings/$id/receipt');
-  return Map<String, dynamic>.from(res.data);
+  return Booking.fromJson(res.data);
 });
 
 class CheckInService {
   CheckInService(this.ref);
   final Ref ref;
 
-  Future<Booking> checkInWithQr(String qrPayload) async {
+  /// Parses the scanned QR payload, which is a URI in the form
+  /// `eazydoctor://checkin?uuid=<qr_uuid>&sig=<signature>`, and posts the
+  /// two fields separately as the backend's QrCheckInRequest expects.
+  Future<CheckInResult> checkInWithQr(String rawQrPayload) async {
+    final uri = Uri.tryParse(rawQrPayload);
+    final qrUuid = uri?.queryParameters['uuid'];
+    final signature = uri?.queryParameters['sig'];
+    if (qrUuid == null || signature == null) {
+      throw ApiException('Unrecognized QR code');
+    }
     final api = ref.read(apiClientProvider);
-    final res = await api
-        .post('/api/v1/queue/check-in/qr', data: {'qr_data': qrPayload});
-    return Booking.fromJson(res.data);
+    final res = await api.post('/api/v1/queue/check-in/qr',
+        data: {'qr_uuid': qrUuid, 'signature': signature});
+    return CheckInResult.fromJson(res.data);
   }
 
-  Future<Booking> checkInManual({String? bookingId, String? phone}) async {
+  Future<CheckInResult> checkInManual({
+    required String doctorId,
+    required String appointmentDate,
+    String? bookingId,
+    String? patientPhone,
+  }) async {
     final api = ref.read(apiClientProvider);
     final res = await api.post('/api/v1/queue/check-in/manual', data: {
+      'doctor_id': doctorId,
+      'appointment_date': appointmentDate,
       if (bookingId != null && bookingId.isNotEmpty) 'booking_id': bookingId,
-      if (phone != null && phone.isNotEmpty) 'phone': phone,
+      if (patientPhone != null && patientPhone.isNotEmpty)
+        'patient_phone': patientPhone,
     });
-    return Booking.fromJson(res.data);
+    return CheckInResult.fromJson(res.data);
   }
 }
 
 final checkInServiceProvider = Provider((ref) => CheckInService(ref));
 
 /// Polls the live queue for a doctor every 5 seconds, per the backend's
-/// GET /queue/live/{doctor_id} contract (current/next token + stall flag).
+/// GET /queue/live/{doctor_id} contract (today's current token + stall
+/// flag only — no "next" token or waiting count is exposed).
 class LiveQueueNotifier extends FamilyAsyncNotifier<LiveQueue, String> {
   Timer? _timer;
 

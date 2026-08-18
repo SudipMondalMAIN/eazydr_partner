@@ -33,7 +33,7 @@ class Doctor {
 
 class DoctorSlot {
   final String id;
-  final String dayOfWeek;
+  final int? dayOfWeek;
   final String startTime;
   final String endTime;
   final int slotDurationMinutes;
@@ -48,9 +48,24 @@ class DoctorSlot {
     this.isLeave = false,
   });
 
+  static const dayNames = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  String get dayLabel =>
+      dayOfWeek != null && dayOfWeek! >= 0 && dayOfWeek! < 7
+          ? dayNames[dayOfWeek!]
+          : 'Every day';
+
   factory DoctorSlot.fromJson(Map<String, dynamic> json) => DoctorSlot(
         id: json['id'].toString(),
-        dayOfWeek: json['day_of_week'] ?? json['date'] ?? '',
+        dayOfWeek: json['day_of_week'] is int ? json['day_of_week'] : null,
         startTime: json['start_time'] ?? '',
         endTime: json['end_time'] ?? '',
         slotDurationMinutes: json['slot_duration_minutes'] ?? 15,
