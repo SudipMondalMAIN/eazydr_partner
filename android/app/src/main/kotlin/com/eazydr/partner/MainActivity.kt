@@ -1,4 +1,4 @@
-package com.example.eazydr_partner
+package com.eazydr.partner
 
 import io.flutter.embedding.android.FlutterActivity
 
